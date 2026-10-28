@@ -9,7 +9,7 @@ metadata:
 spec:
   title: "Next.js Commerce for Salesforce Commerce Cloud on Cloudflare Workers"
   summary: "Vercel's Next.js Commerce for Salesforce Commerce Cloud — a home page with a grid and a carousel, categories, search, product pages with variants, a cart and a guest checkout on B2C Commerce's Shopper APIs, every shopper a SLAS guest and every catalogue read a \"use cache\" entry dropped by tag through a secret-checked route — runs as one Cloudflare Worker with Static Assets, its data cache in R2 and its tag cache and revalidation queue in Durable Objects, live before a Salesforce store is connected, and becomes an Orun baseline that takes a new storefront from nothing to live on stage and prod in one landing."
-  state: started
+  state: completed
   milestones:
     - name: "SX0 — the spec"
       exitCriteria:
