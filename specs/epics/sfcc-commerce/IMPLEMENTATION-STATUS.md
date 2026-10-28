@@ -4,7 +4,7 @@
 |---|---|---|
 | SX0 — the spec | ✅ | SX-1 |
 | SX1 — the storefront on Workers | ✅ | SX-2 |
-| SX2 — a baseline | planned | SX-3 |
+| SX2 — a baseline | ✅ | SX-3, tagged `baseline-v1` |
 
 ## Departures from the upstream template
 
