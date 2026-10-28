@@ -1,0 +1,54 @@
+// GENERATED from wrangler.template.jsonc by tooling/wire — edit the
+// template, not this file. The committed copy is the fixture render
+// (`pnpm run wire:fixture`); every Orun lane renders its own environment.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sfcc-commerce-web-stage",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": { "enabled": true },
+  // No `vars`: the site's name is app/site.ts and the store it talks to is
+  // decided at build (next.config.ts `env`, from the environment's Orun
+  // secrets). SFCC_REVALIDATION_SECRET (the `?secret=` app/api/revalidate
+  // checks) and SFCC_SECRET (a private SLAS client's secret) are Worker
+  // secrets the deploy hands over (tooling/wire/worker-secrets.mjs); without
+  // the first the route refuses, without the second the guest login uses the
+  // public-client flow.
+
+  // The Next.js incremental cache — pre-rendered pages and `"use cache"`
+  // entries — in the bucket infra/terraform/cloudflare-r2 provisions.
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "stg-sfcc-commerce-stage",
+    },
+  ],
+  // The tag cache (which tags `revalidateTag` invalidated, and when) and the
+  // revalidation queue: Durable Objects the generated Worker exports, created
+  // by the migration on first deploy.
+  "durable_objects": {
+    "bindings": [
+      { "name": "NEXT_CACHE_DO_QUEUE", "class_name": "DOQueueHandler" },
+      {
+        "name": "NEXT_TAG_CACHE_DO_SHARDED",
+        "class_name": "DOShardedTagCache",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOQueueHandler", "DOShardedTagCache"],
+    },
+  ],
+  // The queue revalidates a stale route by requesting it from the Worker
+  // itself.
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "sfcc-commerce-web-stage" },
+  ],
+}

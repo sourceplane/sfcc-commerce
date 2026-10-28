@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".open-next/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "SFCC_CLIENT_ID",
+        "SFCC_ORGANIZATIONID",
+        "SFCC_SHORTCODE",
+        "SFCC_SITEID",
+        "SFCC_API_ORIGIN",
+        "COMPANY_NAME",
+        "NEXT_PUBLIC_SITE_URL"
+      ]
+    }
+  }
+}

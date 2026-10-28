@@ -1,0 +1,6 @@
+# Generated, with their generators' own layout: wrangler.jsonc is the
+# template rendered (`pnpm run wire:fixture`), docs/ is the component's
+# generated pages; both carry names a new product's rename makes longer.
+wrangler.jsonc
+wrangler.template.jsonc
+docs/

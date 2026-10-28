@@ -1,0 +1,129 @@
+apiVersion: sourceplane.io/v1
+kind: Component
+metadata:
+  name: web
+  description: The Salesforce Commerce Cloud storefront (Next.js on Cloudflare Workers + Static Assets via @opennextjs/cloudflare, per environment; R2 + Durable Objects as the Next.js cache; an empty storefront that says how to connect a Salesforce store until one is connected)
+spec:
+  type: cloudflare-workers-assets-turbo
+  lifecycle: production
+  owner: platform
+  # Its pages, attached to it in the workspace's catalog: what the Docs
+  # library shows for it, and what the catalog's docs and runbook checks read.
+  # Generated from what this manifest and its sources declare.
+  docs:
+    overview: docs/overview.md
+    pages:
+      - { path: docs/architecture.md, role: architecture, title: Architecture }
+      - { path: docs/runbook.md, role: runbook, title: Runbook }
+  # `app`, not `web`: a domain and a component share one name space in the
+  # catalog, and a domain called `web` hid this component from it.
+  domain: app
+  path: apps/web
+  # Its own lane per environment: the Next.js build is the longest job in the
+  # plan, and a shared lane would wait on it.
+  lane: isolated
+  # INFRA BEFORE APP. The R2 bucket is the Worker's incremental cache, bound
+  # by name, and the name is rendered into its config during the build from
+  # the wiring document the cloudflare-r2 root lease-publishes after its
+  # apply. A job resolves its secrets when it STARTS, so on a merge to main
+  # this deploy waits for that environment's apply (enforced) and the document
+  # is there; a pull request deploys nothing, so nothing on one waits
+  # (advisory). The Durable Objects (tag cache, revalidation queue) need no
+  # root — the Worker exports their classes and the migration creates them on
+  # deploy.
+  dependsOn:
+    - component: cloudflare-r2
+      mode: enforced
+      modeRules:
+        - mode: advisory
+          when:
+            triggerRef: github-pull-request
+  secretEnv:
+    WIRING_CLOUDFLARE_R2_STAGE: "secret://sfcc-commerce/sfcc-commerce/stage/WIRING_CLOUDFLARE_R2"
+    WIRING_CLOUDFLARE_R2_PROD: "secret://sfcc-commerce/sfcc-commerce/prod/WIRING_CLOUDFLARE_R2"
+  # The store, connected after the build by its owner: its SLAS client id,
+  # organization id, short code and site id, per environment. The build
+  # inlines all four (next.config.ts `env`), so connecting a store is a
+  # redeploy; when any is absent — every fresh product — the storefront calls
+  # no Salesforce and says how to connect a store (lib/sfcc/connection.ts).
+  # SFCC_SECRET (a private SLAS client's secret) and SFCC_REVALIDATION_SECRET
+  # (the `?secret=` app/api/revalidate checks) never reach the build: the
+  # deploy hands them to the Worker as secrets (buildCommand below; the
+  # README's "Connecting Salesforce Commerce Cloud").
+  optionalSecretEnv:
+    SFCC_CLIENT_ID: "secret://sfcc-commerce/sfcc-commerce/{{ .environment }}/SFCC_CLIENT_ID"
+    SFCC_ORGANIZATIONID: "secret://sfcc-commerce/sfcc-commerce/{{ .environment }}/SFCC_ORGANIZATIONID"
+    SFCC_SHORTCODE: "secret://sfcc-commerce/sfcc-commerce/{{ .environment }}/SFCC_SHORTCODE"
+    SFCC_SITEID: "secret://sfcc-commerce/sfcc-commerce/{{ .environment }}/SFCC_SITEID"
+    SFCC_SECRET: "secret://sfcc-commerce/sfcc-commerce/{{ .environment }}/SFCC_SECRET"
+    SFCC_REVALIDATION_SECRET: "secret://sfcc-commerce/sfcc-commerce/{{ .environment }}/SFCC_REVALIDATION_SECRET"
+  subscribe:
+    environments:
+      - name: dev
+        profile: verify
+      - name: stage
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+      - name: prod
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+  parameters:
+    nodeVersion: "22"
+    pnpmVersion: "10.12.1"
+
+    workspaceDir: ../..
+    appDir: .
+
+    turboFilter: "@app/web"
+    wranglerConfig: wrangler.jsonc
+
+    # @opennextjs/cloudflare emits a Worker entrypoint plus a static-assets
+    # directory bound via ASSETS — both deploy in one `wrangler deploy`.
+    workerEntrypoint: .open-next/worker.js
+    assetsDir: .open-next/assets
+
+    # Per-env worker name: sfcc-commerce-web-{dev,stage,prod}. The rendered
+    # wrangler.jsonc names the same Worker (its self-reference binding needs it).
+    workerName: sfcc-commerce-web
+    environmentAwareWorkerName: true
+
+    # The account's workers.dev subdomain; exported to the smoke step as
+    # ${WORKERS_DEV_SUBDOMAIN} and used to build ${DEPLOYED_URL}.
+    workersDevSubdomain: your-workers-subdomain
+
+    installCommand: pnpm install --frozen-lockfile
+    # Render this environment's wrangler config, then build. stage and prod
+    # render from the wiring document their cloudflare-r2 apply published
+    # (secretEnv above, resolved before the job's first step); dev, which no
+    # root applies to and which only verifies, renders from the committed
+    # fixture. The committed wrangler.jsonc (the fixture render) is what the
+    # composition's verify-app-structure step finds before this runs. The
+    # build is for this environment's origin: NEXT_PUBLIC_SITE_URL (the
+    # sitemap's, robots.txt's and the Open Graph links' origin) is the
+    # environment's SITE_URL (intent.yaml), else its workers.dev URL.
+    # SFCC_SECRET and SFCC_REVALIDATION_SECRET never reach the build
+    # (`env -u`), so no bundle carries them; on a deploy lane they then go to
+    # the Worker as SECRETS (tooling/wire/worker-secrets.mjs: `wrangler secret
+    # bulk` over stdin; a verify lane holds no Cloudflare credential and
+    # pushes nothing). SFCC_API_ORIGIN is the e2e's stand-in, never set here.
+    buildCommand: node ../../tooling/wire/live.mjs --template wrangler.template.jsonc --out wrangler.jsonc --components cloudflare-r2 --env "${ORUN_ENVIRONMENT}" --fixture wiring.fixture.json --fixture-envs dev && NEXT_PUBLIC_SITE_URL="${SITE_URL:-https://sfcc-commerce-web-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" env -u SFCC_SECRET -u SFCC_REVALIDATION_SECRET pnpm exec turbo run build --filter=@app/web && node ../../tooling/wire/worker-secrets.mjs --secret SFCC_SECRET --secret SFCC_REVALIDATION_SECRET --worker "sfcc-commerce-web-${ORUN_ENVIRONMENT}" --config wrangler.jsonc
+
+    # Smoke: the storefront answers (`/` is the store's home, or before a
+    # store is connected the page that says how to connect one), and the
+    # Worker itself answers /api/health, which no static file can. Not the
+    # store's name: that is the owner's to change, and HTML-escaped when it
+    # carries an `&` or `'`. Not a product either: before a store is connected
+    # there is none, and a connected store may be empty. Buffered before grep
+    # so an early match cannot SIGPIPE curl.
+    smokeCommand: 'curl -sfL -o /dev/null "${DEPLOYED_URL}/" && health=$(curl -sf "${DEPLOYED_URL}/api/health") && echo "${health}" | grep -q "\"ok\":true"'
+  labels:
+    team: platform
+    layer: delivery
+    surface: web
+    runtime: cloudflare

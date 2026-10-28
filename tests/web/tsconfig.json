@@ -1,0 +1,21 @@
+{
+  // The storefront's own compiler options (apps/web/tsconfig.json), because
+  // these tests import its sources and tsc checks every file it reaches under
+  // the importing project's options; only the paths and the files differ.
+  "extends": "../../apps/web/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "types": ["node"],
+    "paths": {
+      "@/*": ["../../apps/web/*"],
+      "app/*": ["../../apps/web/app/*"],
+      "components/*": ["../../apps/web/components/*"],
+      "lib/*": ["../../apps/web/lib/*"]
+    },
+    "plugins": []
+  },
+  // The Worker bindings are an ambient declaration of the storefront's own.
+  "include": ["src/**/*.ts", "../../apps/web/cloudflare-env.d.ts"],
+  "exclude": ["node_modules"]
+}

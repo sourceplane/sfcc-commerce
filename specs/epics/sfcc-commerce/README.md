@@ -13,7 +13,7 @@ from theirs once they set its SLAS client and site.**
 
 | | |
 |---|---|
-| Status | In progress — SX0 on main |
+| Status | In progress — SX1 on main: the site runs on Workers |
 | Upstream | [vercel-partner-solutions/nextjs-salesforce-commerce-cloud](https://github.com/vercel-partner-solutions/nextjs-salesforce-commerce-cloud) (MIT, `license.md`), at `a474b5e` (2026-08-18) |
 | Reference | [commerce](https://github.com/sourceplane/commerce), [shopware-commerce](https://github.com/sourceplane/shopware-commerce), [saleor-commerce](https://github.com/sourceplane/saleor-commerce) — the same OpenNext, R2 and Durable Object shape for a Next.js Commerce storefront on a hosted commerce API, and the same unconnected state |
 | Key | `SX` |
