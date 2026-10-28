@@ -1,0 +1,30 @@
+# The epic's declaration. metadata.name equals the directory name; metadata.key
+# is the task-key prefix this epic reserves (SX → SX-1, SX-2, …). Owner, target
+# date and health are the platform's — never written here.
+apiVersion: orun.io/v1
+kind: Epic
+metadata:
+  name: sfcc-commerce
+  key: SX
+spec:
+  title: "Next.js Commerce for Salesforce Commerce Cloud on Cloudflare Workers"
+  summary: "Vercel's Next.js Commerce for Salesforce Commerce Cloud — a home page with a grid and a carousel, categories, search, product pages with variants, a cart and a guest checkout on B2C Commerce's Shopper APIs, every shopper a SLAS guest and every catalogue read a \"use cache\" entry dropped by tag through a secret-checked route — runs as one Cloudflare Worker with Static Assets, its data cache in R2 and its tag cache and revalidation queue in Durable Objects, live before a Salesforce store is connected, and becomes an Orun baseline that takes a new storefront from nothing to live on stage and prod in one landing."
+  state: started
+  milestones:
+    - name: "SX0 — the spec"
+      exitCriteria:
+        - "the repository is born with its intent, CI, tooling and spec index, and this doc set and the task contracts are on main"
+      tasks: [SX-1]
+    - name: "SX1 — the storefront on Workers"
+      exitCriteria:
+        - "a spike proves the template's \"use cache\" reads reused and revalidated on OpenNext with Cache Components off, the SDK and the SLAS login on workerd, and the Worker's size"
+        - "apps/web is upstream's starter built by OpenNext into one Worker with Static Assets, the R2 incremental cache, the Durable Object tag cache and queue, Cache Components off and every \"use cache\" read kept"
+        - "typecheck, lint, upstream's check, tests/web and build are green with no store"
+        - "with no store connected every page answers with the connect note and / says \"Connect your Salesforce Commerce Cloud store\", never a 500; connected, wrangler dev serves the catalogue, reuses the cache and revalidates through the secret-checked route"
+      tasks: [SX-2]
+    - name: "SX2 — a baseline"
+      exitCriteria:
+        - "blueprint.yaml (the console card) and repo-blueprint.yaml (the build) take a new storefront from nothing to live on stage and prod in one landing, then record it"
+        - "a storefront built from it carries the product only, renamed throughout to its own name, repository, Worker and buckets, with upstream's licence intact"
+        - "Baseline CI is green: contract tests, the wiring path, generated component docs, the blueprint read by the pinned orun, the leak gate, the offline bootstrap and the end-to-end tier — the stage lane's steps in a staged tree, served as born, then connected to a stand-in SCAPI + SLAS and browsed"
+      tasks: [SX-3]
