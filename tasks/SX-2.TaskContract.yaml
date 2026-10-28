@@ -1,0 +1,19 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: SX-2
+  title: "The storefront on Workers"
+spec:
+  goal: Vercel's Next.js Commerce for Salesforce Commerce Cloud runs as one Cloudflare Worker with Static Assets, its catalogue reads cached in R2 and revalidated through the Durable Object tag cache by a secret-checked route, live before a store is connected
+  affects:
+    - apps/web
+    - infra/terraform/cloudflare-r2
+    - tests/web
+    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
+    - README.md
+  doneWhen:
+    - a spike proves the "use cache" reads reused and revalidated on OpenNext with Cache Components off
+    - pnpm typecheck, lint, test and build are green with no Salesforce store
+    - wrangler dev serves the unconnected storefront without a 500, and a connected one from cached reads revalidated through /api/revalidate
+  gates: []
