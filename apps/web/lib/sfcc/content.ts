@@ -92,11 +92,11 @@ const homePage = {
   handle: "",
   body: ``,
   bodySummary:
-    "High-performance ecommerce store built with Next.js, Vercel, and Salesforce Commerce Cloud.",
+    "High-performance ecommerce store built with Next.js, Orunbase, and Salesforce Commerce Cloud.",
   seo: {
     title: "Acme Store",
     description:
-      "High-performance ecommerce store built with Next.js, Vercel, and Salesforce Commerce Cloud.",
+      "High-performance ecommerce store built with Next.js, Orunbase, and Salesforce Commerce Cloud.",
   },
   createdAt: "2024-09-20T20:15:06Z",
   updatedAt: "2024-09-20T20:15:06Z",
@@ -132,11 +132,11 @@ const aboutPage = {
 <li>And more!</li>
 </ul></div>`,
   bodySummary:
-    "This website is built with Next.js, Vercel, and Salesforce Commerce Cloud.",
+    "This website is built with Next.js, Orunbase, and Salesforce Commerce Cloud.",
   seo: {
     title: "About",
     description:
-      "This website is built with Next.js, Vercel, and Salesforce Commerce Cloud.",
+      "This website is built with Next.js, Orunbase, and Salesforce Commerce Cloud.",
   },
   createdAt: "2024-09-20T20:15:06Z",
   updatedAt: "2024-09-20T20:15:06Z",
