@@ -75,7 +75,10 @@ export default async function Footer() {
               className="inline-flex items-center gap-1.5 text-black dark:text-white"
             >
               <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden="true">
-                <path d="M5.06 31.58 A20.4 20.4 0 1 1 42.94 31.58 Z" fill="currentColor" />
+                <path
+                  d="M5.06 31.58 A20.4 20.4 0 1 1 42.94 31.58 Z"
+                  fill="currentColor"
+                />
                 <path
                   d="M10.43 39.23 A20.4 20.4 0 0 0 37.57 39.23 Z"
                   className="fill-[#B8862F] dark:fill-[#E3B34C]"
